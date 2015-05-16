@@ -3,48 +3,95 @@ package org.pixelgaffer.turnierserver.minesweeper;
 import java.util.HashMap;
 import java.util.Map;
 
+import lombok.Getter;
+
+import org.pixelgaffer.turnierserver.gamelogic.interfaces.BuilderSolverGameState;
 import org.pixelgaffer.turnierserver.minesweeper.Cell.Type;
 
-public class Grid {
+public class Grid extends BuilderSolverGameState<Map<String, Cell>, Cell[][], MinesweeperSolverResponse> {
 	
 	private Cell[][] field;
 	private boolean won;
-	
-	public Grid(Map<String, String> map) {
-		fromMap(map);
-	}
+	@Getter
+	private int moves;
 	
 	public Grid(Cell[][] field) {
 		this.field = field;
 	}
-	
-	public void fromMap(Map<String, String> map) {
+
+	public Grid() {
+		
+	}
+
+	@Override
+	public void applyChanges(Map<String, Cell> changes) {
 		for(int i = 0; i < Cell.FIELD_SIZE; i++) {
 			for(int j = 0; j < Cell.FIELD_SIZE; j++) {
-				if(map.containsKey(i + ":" + j)) {
-					field[i][j] = new Cell(map.get(i + ":" + j));
+				if(changes.containsKey(i + ":" + j)) {
+					field[i][j] = changes.get(i + ":" + j);
 				}
 			}
 		}
 	}
-	
-	public Map<String, String> toMap() {
-		Map<String, String> map = new HashMap<String, String>();
+
+	@Override
+	public Response<Map<String, Cell>> build(Cell[][] response) {
+		field = response;
+		Response<Map<String, Cell>> result = new Response<>();
+		result.finished = true;
+		result.valid = !hasEmpty() && getBombs() == Cell.BOMB_COUNT;
+		if(result.valid) {
+			countSurroundingBombs();
+		}
+		return null;
+	}
+
+	@Override
+	public Response<Map<String, Cell>> solve(MinesweeperSolverResponse response) {
 		
-		for(int i = 0; i < field.length; i++) {
-			for(int j = 0; j < field.length; j++) {
-				map.put(i + ":" + j, field[i][j].toString());
-			}
+		Response<Map<String, Cell>> result = new Response<>();
+		result.changes = new HashMap<>();
+		result.valid = true;
+		
+		Cell cell = get(response.xFlag, response.yFlag);
+		if(cell != null) {
+			cell.setFlagged(!cell.isFlagged());
+			result.changes.put(response.xFlag + ":"  + response.yFlag, cell);
 		}
 		
-		return map;
+		cell = get(response.xStep, response.yStep);
+		if(cell != null) {
+			Map<String, Cell> uncover = uncover(response.xStep, response.yStep);
+			
+			moves++;
+			
+			if(uncover == null) {
+				result.finished = true;
+				result.valid = false;
+				result.changes = null;
+				return result;
+			}
+						
+			result.changes.putAll(uncover);
+			if(won()) {
+				result.finished = true;
+				result.changes = null;
+			}
+			
+		}
+		return result;
+	}
+
+	@Override
+	public Cell[][] getState() {
+		return field;
 	}
 	
-	public Map<String, String> uncover(int x, int y) {
+	private Map<String, Cell> uncover(int x, int y) {
 		return uncover(x, y, new HashMap<>());
 	}
 	
-	private Map<String, String> uncover(int x, int y, Map<String, String> map) {
+	private Map<String, Cell> uncover(int x, int y, Map<String, Cell> map) {
 		Cell cell = field[x][y];
 		if(cell.getType() == Type.BOMB) {
 			return null;
@@ -53,7 +100,7 @@ public class Grid {
 			return map;
 		}
 		cell.uncover();
-		map.put(x + ":" + y, cell.toString());
+		map.put(x + ":" + y, cell);
 		if(cell.getBombsArround() != 0) {
 			uncover(x + 1, y, map);
 			uncover(x + 1, y + 1, map);
@@ -67,7 +114,7 @@ public class Grid {
 		return map;
 	}
 	
-	public void countSurroundingBombs() {
+	private void countSurroundingBombs() {
 		for(int i = 0; i < Cell.FIELD_SIZE; i++) {
 			for(int j = 0; j < Cell.FIELD_SIZE; j++) {
 				countSurroundingBombs(i, j);
@@ -100,7 +147,7 @@ public class Grid {
 		return field;
 	}
 	
-	public boolean hasEmpty() {
+	private boolean hasEmpty() {
 		for(int i = 0; i < Cell.FIELD_SIZE; i++) {
 			for(int j = 0; j< Cell.FIELD_SIZE; j++) {
 				if(field[i][j] == null || field[i][j].getType() == Type.COVERED) {
@@ -111,7 +158,7 @@ public class Grid {
 		return false;
 	}
 	
-	public int getBombs() {
+	private int getBombs() {
 		int bombs = 0;
 		for(int i = 0; i < Cell.FIELD_SIZE; i++) {
 			for(int j = 0; j < Cell.FIELD_SIZE; j++) {
@@ -123,11 +170,14 @@ public class Grid {
 		return bombs;
 	}
 	
-	public Cell get(int x, int y) {
+	private Cell get(int x, int y) {
+		if(!Cell.isInField(x, y)) {
+			return null;
+		}
 		return field[x][y];
 	}
 	
-	public boolean won() {
+	private boolean won() {
 		if(won) {
 			return true;
 		}
