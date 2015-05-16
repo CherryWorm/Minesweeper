@@ -1,12 +1,13 @@
 package org.pixelgaffer.turnierserver.minesweeper.logic;
 
-import java.util.Map;
+import org.pixelgaffer.turnierserver.minesweeper.Cell;
 
 public class MinesweeperRenderData {
 	
-	public Map<String, String> field;
+	public Cell[][] field;
 	public String output;
 	public int calculationTime;
 	public int aiID;
+	public boolean building;
 	
 }

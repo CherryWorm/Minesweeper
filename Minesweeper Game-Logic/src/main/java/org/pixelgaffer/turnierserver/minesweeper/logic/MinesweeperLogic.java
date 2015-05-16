@@ -4,9 +4,10 @@ import org.pixelgaffer.turnierserver.gamelogic.AllBuilderAllSolverLogic;
 import org.pixelgaffer.turnierserver.gamelogic.interfaces.Ai;
 import org.pixelgaffer.turnierserver.minesweeper.Cell;
 import org.pixelgaffer.turnierserver.minesweeper.Grid;
+import org.pixelgaffer.turnierserver.minesweeper.MinesweeperBuilderResponse;
 import org.pixelgaffer.turnierserver.minesweeper.MinesweeperSolverResponse;
 
-public class MinesweeperLogic extends AllBuilderAllSolverLogic<MinesweeperObject, Grid, Cell[][], MinesweeperSolverResponse> {
+public class MinesweeperLogic extends AllBuilderAllSolverLogic<MinesweeperObject, Grid, MinesweeperBuilderResponse, MinesweeperSolverResponse> {
 
 	@Override
 	public void failed(boolean building, Ai ai) {
@@ -41,8 +42,10 @@ public class MinesweeperLogic extends AllBuilderAllSolverLogic<MinesweeperObject
 	}
 
 	@Override
-	public Grid createGameState() {
-		return new Grid();
+	public Grid createGameState(Ai ai) {
+		Grid grid = new Grid();
+		grid.setAi(ai);
+		return null;
 	}
 
 }

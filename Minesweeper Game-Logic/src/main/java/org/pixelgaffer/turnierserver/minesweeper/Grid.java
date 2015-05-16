@@ -7,8 +7,9 @@ import lombok.Getter;
 
 import org.pixelgaffer.turnierserver.gamelogic.interfaces.BuilderSolverGameState;
 import org.pixelgaffer.turnierserver.minesweeper.Cell.Type;
+import org.pixelgaffer.turnierserver.minesweeper.logic.MinesweeperRenderData;
 
-public class Grid extends BuilderSolverGameState<Map<String, Cell>, Cell[][], MinesweeperSolverResponse> {
+public class Grid extends BuilderSolverGameState<Map<String, Cell>, MinesweeperBuilderResponse, MinesweeperSolverResponse> {
 	
 	private Cell[][] field;
 	private boolean won;
@@ -35,15 +36,22 @@ public class Grid extends BuilderSolverGameState<Map<String, Cell>, Cell[][], Mi
 	}
 
 	@Override
-	public Response<Map<String, Cell>> build(Cell[][] response) {
-		field = response;
+	public Response<Map<String, Cell>> build(MinesweeperBuilderResponse response) {
+		field = response.field;
 		Response<Map<String, Cell>> result = new Response<>();
 		result.finished = true;
 		result.valid = !hasEmpty() && getBombs() == Cell.BOMB_COUNT;
 		if(result.valid) {
 			countSurroundingBombs();
 		}
-		return null;
+		MinesweeperRenderData data = new MinesweeperRenderData();
+		data.aiID = getAi().getId();
+		data.building = true;
+		data.calculationTime = getAi().getObject().millisLeft;
+		data.field = response.field;
+		data.output = response.output;
+		result.renderData = data;
+		return result;
 	}
 
 	@Override
@@ -52,6 +60,14 @@ public class Grid extends BuilderSolverGameState<Map<String, Cell>, Cell[][], Mi
 		Response<Map<String, Cell>> result = new Response<>();
 		result.changes = new HashMap<>();
 		result.valid = true;
+		
+		MinesweeperRenderData data = new MinesweeperRenderData();
+		data.aiID = getAi().getId();
+		data.building = true;
+		data.calculationTime = getAi().getObject().millisLeft;
+		data.field = field;
+		data.output = response.output;
+		result.renderData = data;
 		
 		Cell cell = get(response.xFlag, response.yFlag);
 		if(cell != null) {
@@ -83,8 +99,14 @@ public class Grid extends BuilderSolverGameState<Map<String, Cell>, Cell[][], Mi
 	}
 
 	@Override
-	public Cell[][] getState() {
-		return field;
+	public Map<String, Cell> getState() {
+		Map<String, Cell> response = new HashMap<>();
+		for(int i = 0; i < Cell.FIELD_SIZE; i++) {
+			for(int j = 0; j < Cell.FIELD_SIZE; j++) {
+				response.put(i + ":" + j, get(i, j));
+			}
+		}
+		return response;
 	}
 	
 	private Map<String, Cell> uncover(int x, int y) {
