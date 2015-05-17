@@ -1,9 +1,68 @@
 package org.pixelgaffer.turnierserver.minesweeper;
 
+import java.io.IOException;
+
 import lombok.Getter;
 import lombok.Setter;
 
+import org.pixelgaffer.turnierserver.Parsers;
+
+import com.google.gson.TypeAdapter;
+import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
+
 public class Cell {
+	
+	public static class CellAdapter extends TypeAdapter<Cell> {
+		@Override
+		public void write(JsonWriter out, Cell value) throws IOException {
+			out.beginArray();
+			if(!value.uncovered) {
+				out.value(0);
+				out.value(value.flagged ? 1 : 0);
+			}
+			else if(value.type == Type.BOMB) {
+				out.value(1);
+			}
+			else {
+				out.value(2);
+				out.value(value.bombsArround);
+			}
+			out.endArray();
+		}
+
+		@Override
+		public Cell read(JsonReader in) throws IOException {
+			in.beginArray();
+			int type = in.nextInt();
+			Cell cell = new Cell(type == 0 ? Type.COVERED : type == 1 ? Type.BOMB : Type.EMPTY);
+			if(cell.type == Type.COVERED) {
+				cell.uncovered = false;
+				cell.bombsArround = -1;
+				cell.flagged = in.nextInt() == 1;
+				return cell;
+			}
+			if(cell.type == Type.BOMB) {
+				cell.uncovered = true;
+				cell.bombsArround = -1;
+				cell.flagged = false;
+				return cell;
+			}
+			if(cell.type == Type.EMPTY) {
+				cell.uncovered = true;
+				cell.bombsArround = in.nextInt();
+				cell.flagged = false;
+				return cell;
+			}
+			return cell;
+		}
+		
+	}
+	
+	static {
+		Parsers.addTypeAdapter(new TypeToken<Cell>() {}, new CellAdapter());
+	}
 	
 	/**
 	 * Die Größe des Feldes
@@ -49,42 +108,10 @@ public class Cell {
 	}
 	
 	/**
-	 * Erstellt eine neue Cell aus einem String (NICHT VERWENDEN)
-	 * 
-	 * @param string
-	 */
-	public Cell(String string) {
-		if(string.startsWith("0")) {
-			type = Type.COVERED;
-			flagged = Boolean.parseBoolean(string.split(" ")[1]);
-		}
-		if(string.equals("1")) {
-			type = Type.BOMB;
-			uncovered = true;
-		}
-		if(string.startsWith("2")) {
-			type = Type.EMPTY;
-			uncovered = true;
-			bombsArround = Integer.parseInt(string.split(" ")[1]);
-		}
-	}
-	
-	/**
 	 * Diese Methode wird nichts ändern. Verwende MinesweeperAi.uncover(x, y)
 	 */
 	public void uncover() {
 		uncovered = true;
-	}
-	
-	@Override
-	public String toString() {
-		if(!uncovered) {
-			return "0 " + Boolean.toString(flagged);
-		}
-		if(type == Type.BOMB) {
-			return "1";
-		}
-		return "2 " + bombsArround;
 	}
 	
 	/**

@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import org.pixelgaffer.turnierserver.gamelogic.interfaces.BuilderSolverGameState;
 import org.pixelgaffer.turnierserver.minesweeper.Cell.Type;
@@ -15,6 +16,9 @@ public class Grid extends BuilderSolverGameState<Map<String, Cell>, MinesweeperB
 	private boolean won;
 	@Getter
 	private int moves;
+	
+	@Getter @Setter
+	private boolean building;
 	
 	public Grid(Cell[][] field) {
 		this.field = field;

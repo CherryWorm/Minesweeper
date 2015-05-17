@@ -1,33 +1,53 @@
 package org.pixelgaffer.turnierserver.minesweeper.ai;
 
+import java.util.Map;
+
 import org.pixelgaffer.turnierserver.ailibrary.Ai;
+import org.pixelgaffer.turnierserver.gamelogic.messages.BuilderSolverChange;
+import org.pixelgaffer.turnierserver.gamelogic.messages.BuilderSolverResponse;
 import org.pixelgaffer.turnierserver.minesweeper.Cell;
 import org.pixelgaffer.turnierserver.minesweeper.Grid;
-import org.pixelgaffer.turnierserver.minesweeper.MinesweeperResponse;
+import org.pixelgaffer.turnierserver.minesweeper.MinesweeperBuilderResponse;
+import org.pixelgaffer.turnierserver.minesweeper.MinesweeperSolverResponse;
 
-public abstract class MinesweeperAi extends Ai<MinesweeperState, MinesweeperResponse> {
+import com.google.gson.reflect.TypeToken;
+
+public abstract class MinesweeperAi extends Ai<Grid, Map<String, Cell>> {
+
+	public MinesweeperAi() {
+		super(new TypeToken<BuilderSolverChange<Map<String, Cell>>>() {});
+	}
 
 	private int xFlag = -1, yFlag = -1;
 	private int xStep = -1, yStep = -1;
 	
+	private Grid grid = new Grid();
+	
 	@Override
-	protected MinesweeperResponse update(MinesweeperState state) {
-		MinesweeperResponse response = new MinesweeperResponse();
-		if(state.isGenerating()) {
-			response.newField = new Grid(generateField()).toMap();
-			return response;
+	protected Object update(Grid state) {
+		BuilderSolverResponse<MinesweeperBuilderResponse, MinesweeperSolverResponse> response = new BuilderSolverResponse<>();
+		
+		if(state.isBuilding()) {
+			response.build.field = generateField();
+			response.build.output = output.toString();
 		}
-		step(state);
-		response.xFlag = xFlag;
-		response.yFlag = yFlag;
-		response.xStep = xStep;
-		response.yStep = yStep;
+		else {
+			step(state.getField());
+			response.solve.output = output.toString();
+			response.solve.xFlag = xFlag;
+			response.solve.yFlag = yFlag;
+			response.solve.xStep = xStep;
+			response.solve.yStep = yStep;
+		}
+		output = new StringBuilder("");
+		
 		return response;
 	}
-
 	@Override
-	protected MinesweeperState getState() {
-		return new MinesweeperState(new Grid(gamestate).getField(), Boolean.parseBoolean(gamestate.get("creating")));
+	protected Grid getState(BuilderSolverChange<Map<String, Cell>> change) {
+		grid.applyChanges(change.change);
+		grid.setBuilding(true);
+		return grid;
 	}
 	
 	/**
@@ -41,7 +61,7 @@ public abstract class MinesweeperAi extends Ai<MinesweeperState, MinesweeperResp
 	 * 
 	 * @param state Der Spielzustand
 	 */
-	protected abstract void step(MinesweeperState state);
+	protected abstract void step(Cell[][] state);
 	
 	/**
 	 * Markiert ein Feld
@@ -65,12 +85,26 @@ public abstract class MinesweeperAi extends Ai<MinesweeperState, MinesweeperResp
 		yFlag = -1;
 	}
 	
+	/**
+	 * Enthült ein Feld
+	 * 
+	 * @param x Die x-Koordinate des Feldes
+	 * @param y Die y-Koordinate des Feldes
+	 */
 	public void uncover(int x, int y) {
 		if(!Cell.isInField(x, y)) {
 			return;
 		}
 		xStep = x;
 		yStep = y;
+	}
+	
+	/**
+	 * Deckt das enthülte Feld wieder zu
+	 */
+	public void resetUncover() {
+		xStep = -1;
+		yStep = -1;
 	}
 	
 }
