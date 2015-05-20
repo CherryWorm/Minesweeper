@@ -12,7 +12,7 @@ import org.pixelgaffer.turnierserver.minesweeper.MinesweeperSolverResponse;
 
 import com.google.gson.reflect.TypeToken;
 
-public abstract class MinesweeperAi extends Ai<Grid, Map<String, Cell>> {
+public abstract class MinesweeperAi extends Ai<Grid, BuilderSolverChange<Map<String, Cell>>> {
 
 	public MinesweeperAi(String[] args) {
 		super(new TypeToken<BuilderSolverChange<Map<String, Cell>>>() {}, args);
@@ -45,7 +45,7 @@ public abstract class MinesweeperAi extends Ai<Grid, Map<String, Cell>> {
 	}
 	@Override
 	protected Grid getState(BuilderSolverChange<Map<String, Cell>> change) {
-		grid.applyChanges(change.change);
+		grid.applyChanges(change);
 		grid.setBuilding(true);
 		return grid;
 	}

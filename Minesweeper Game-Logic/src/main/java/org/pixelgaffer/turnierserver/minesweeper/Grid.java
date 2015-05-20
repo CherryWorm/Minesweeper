@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import org.pixelgaffer.turnierserver.gamelogic.interfaces.BuilderSolverGameState;
+import org.pixelgaffer.turnierserver.gamelogic.messages.BuilderSolverChange;
 import org.pixelgaffer.turnierserver.minesweeper.Cell.Type;
 import org.pixelgaffer.turnierserver.minesweeper.logic.MinesweeperRenderData;
 
@@ -29,11 +30,11 @@ public class Grid extends BuilderSolverGameState<Map<String, Cell>, MinesweeperB
 	}
 
 	@Override
-	public void applyChanges(Map<String, Cell> changes) {
+	public void applyChanges(BuilderSolverChange<Map<String, Cell>> changes) {
 		for(int i = 0; i < Cell.FIELD_SIZE; i++) {
 			for(int j = 0; j < Cell.FIELD_SIZE; j++) {
-				if(changes.containsKey(i + ":" + j)) {
-					field[i][j] = changes.get(i + ":" + j);
+				if(changes.change.containsKey(i + ":" + j)) {
+					field[i][j] = changes.change.get(i + ":" + j);
 				}
 			}
 		}
