@@ -14,8 +14,8 @@ import com.google.gson.reflect.TypeToken;
 
 public abstract class MinesweeperAi extends Ai<Grid, Map<String, Cell>> {
 
-	public MinesweeperAi() {
-		super(new TypeToken<BuilderSolverChange<Map<String, Cell>>>() {});
+	public MinesweeperAi(String[] args) {
+		super(new TypeToken<BuilderSolverChange<Map<String, Cell>>>() {}, args);
 	}
 
 	private int xFlag = -1, yFlag = -1;
