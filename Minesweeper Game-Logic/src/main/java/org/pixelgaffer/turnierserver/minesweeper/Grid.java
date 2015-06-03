@@ -51,7 +51,6 @@ public class Grid extends BuilderSolverGameState<Map<String, Cell>, MinesweeperB
 		}
 		MinesweeperRenderData data = new MinesweeperRenderData();
 		data.aiID = getAi().getId();
-		data.building = true;
 		data.calculationTime = getAi().getObject().millisLeft;
 		data.field = response.field;
 		data.output = response.output;
@@ -68,7 +67,6 @@ public class Grid extends BuilderSolverGameState<Map<String, Cell>, MinesweeperB
 		
 		MinesweeperRenderData data = new MinesweeperRenderData();
 		data.aiID = getAi().getId();
-		data.building = true;
 		data.calculationTime = getAi().getObject().millisLeft;
 		data.field = field;
 		data.output = response.output;

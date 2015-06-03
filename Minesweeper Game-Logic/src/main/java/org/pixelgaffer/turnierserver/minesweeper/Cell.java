@@ -67,11 +67,11 @@ public class Cell {
 	/**
 	 * Die Größe des Feldes
 	 */
-	public static final int FIELD_SIZE = 8;
+	public static final int FIELD_SIZE = 16;
 	/**
 	 * Die Anzahl an Bomben pro Feld
 	 */
-	public static final int BOMB_COUNT = 12;
+	public static final int BOMB_COUNT = 64;
 	
 	public enum Type {
 		BOMB, EMPTY, COVERED;

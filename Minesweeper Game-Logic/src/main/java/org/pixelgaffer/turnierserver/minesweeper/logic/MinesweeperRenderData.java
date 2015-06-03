@@ -8,6 +8,5 @@ public class MinesweeperRenderData {
 	public String output;
 	public int calculationTime;
 	public int aiID;
-	public boolean building;
 	
 }
